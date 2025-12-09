@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SocialHub - Home</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+/* Stories Section */
+.stories-container {
+    background: white;
+    padding: 15px;
+    border-radius: 15px;
+    margin-bottom: 20px;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+.stories-wrapper {
+    display: inline-flex;
+    gap: 15px;
+}
+
+.story-item {
+    display: inline-block;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.story-item:hover {
+    transform: scale(1.1);
+}
+
+.story-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 35px;
+    border: 3px solid #667eea;
+    position: relative;
+    margin-bottom: 5px;
+}
+
+.story-avatar.viewed {
+    border-color: #ccc;
+}
+
+.story-avatar.add-story {
+    background: white;
+    border: 2px dashed #667eea;
+    color: #667eea;
+}
+
+.story-name {
+    font-size: 12px;
+    font-weight: 600;
+    max-width: 70px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Story Modal */
+.story-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.95);
+    z-index: 9999;
+    display: none;
+    align-items: center;
+    justify-content: center;
+}
+
+.story-content {
+    max-width: 500px;
+    width: 90%;
+    background: #333;
+    border-radius: 15px;
+    overflow: hidden;
+    position: relative;
+}
+
+.story-header {
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0,0,0,0.5);
+}
+
+.story-body {
+    padding: 100px 20px;
+    text-align: center;
+    font-size: 80px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+}
+
+.story-text {
+    color: white;
+    font-size: 24px;
+    margin-top: 20px;
+    font-weight: bold;
+}
+
+.story-close {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255,255,255,0.3);
+    border: none;
+    color: white;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* Chat Sidebar */
+.chat-sidebar {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 380px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    z-index: 9998;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-sidebar.active {
+    right: 0;
+}
+
+.chat-header {
+    padding: 20px;
+    border-bottom: 1px solid #e4e6eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
+.chat-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.chat-item:hover {
+    background: #f0f2f5;
+}
+
+.chat-item.unread {
+    background: rgba(102, 126, 234, 0.1);
+}
+
+.chat-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.online-dot-chat {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 14px;
+    height: 14px;
+    background: #10b981;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.chat-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.chat-name {
+    font-weight: 700;
+    font-size: 15px;
+}
+
+.chat-last-message {
+    font-size: 13px;
+    color: #65676b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-unread-badge {
+    background: #667eea;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+/* Chat Window */
+.chat-window {
+    position: fixed;
+    right: -400px;
+    top: 0;
+    width: 380px;
+    height: 100%;
+    background: white;
+    box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+    z-index: 9999;
+    transition: all 0.3s;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-window.active {
+    right: 0;
+}
+
+.chat-window-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #e4e6eb;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.chat-back-btn {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.message {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 18px;
+    word-wrap: break-word;
+}
+
+.message.sent {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.message.received {
+    align-self: flex-start;
+    background: #f0f2f5;
+}
+
+.message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 3px;
+}
+
+.chat-input-container {
+    padding: 15px;
+    border-top: 1px solid #e4e6eb;
+    display: flex;
+    gap: 10px;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 2px solid #f0f2f5;
+    border-radius: 20px;
+    outline: none;
+}
+
+.chat-input:focus {
+    border-color: #667eea;
+}
+
+.chat-send-btn {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    .chat-sidebar, .chat-window {
+        width: 100%;
+        right: -100%;
+    }
+}
+</style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm fixed-top">
+        <div class="container">
+            <a class="navbar-brand gradient-text fw-bold" href="/">
+                <i class="fas fa-rocket me-2"></i>SocialHub Pro
+            </a>
+            
+            <div class="d-flex align-items-center">
+                <button class="btn btn-icon me-2" onclick="location.reload()">
+                    <i class="fas fa-home"></i>
+                </button>
+                <button class="btn btn-icon me-2" data-bs-toggle="modal" data-bs-target="#notifModal">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge-dot"></span>
+                </button>
+                <button class="btn btn-icon me-2" data-bs-toggle="modal" data-bs-target="#messageModal">
+                    <i class="fas fa-envelope"></i>
+                    <span class="badge-dot"></span>
+                </button>
+                <div class="dropdown">
+                    <button class="btn btn-icon" data-bs-toggle="dropdown">
+                        <span class="user-avatar">{{ user.avatar }}</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profile</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="container main-container">
+        <div class="row">
+            <!-- Left Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="card profile-card animate__animated animate__fadeInLeft">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar mb-3">{{ user.avatar }}</div>
+                        <h5 class="fw-bold mb-1">
+                            {{ user.name }}
+                            {% if user.verified %}<i class="fas fa-check-circle text-primary ms-1"></i>{% endif %}
+                        </h5>
+                        <p class="text-muted small">{{ user.bio }}</p>
+                        
+                        <div class="stats-row">
+                            <div class="stat-item">
+                                <div class="stat-number">{{ followers }}</div>
+                                <div class="stat-label">Followers</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ following }}</div>
+                                <div class="stat-label">Following</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-number">{{ posts|length }}</div>
+                                <div class="stat-label">Posts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <div class="menu-item">
+                            <i class="fas fa-home me-2"></i> Home
+                        </div>
+                        <div class="menu-item">
+                            <i class="fas fa-users me-2"></i> Friends
+                        </div>
+                        <div class="menu-item">
+                            <i class="fas fa-images me-2"></i> Photos
+                        </div>
+                        <div class="menu-item">
+                            <i class="fas fa-video me-2"></i> Videos
+                        </div>
+                        <div class="menu-item">
+                            <i class="fas fa-chart-line me-2"></i> Analytics
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Feed -->
+            <div class="col-lg-6">
+        <!-- Main Feed - tambahkan Stories section sebelum Create Post -->
+<div class="col-lg-6">
+    <!-- Stories -->
+    <div class="stories-container animate__animated animate__fadeInDown">
+        <div class="stories-wrapper">
+            <!-- Add Story -->
+            <div class="story-item" onclick="showAddStory()">
+                <div class="story-avatar add-story">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <div class="story-name">Add Story</div>
+            </div>
+            
+            <!-- User Stories -->
+            {% for story_user, user_stories in stories.items() %}
+            {% if user_stories %}
+            <div class="story-item" onclick="viewStory('{{ story_user }}')">
+                <div class="story-avatar {% if username in user_stories[0].get('views', []) %}viewed{% endif %}">
+                    {{ users[story_user].avatar }}
+                </div>
+                <div class="story-name">{{ users[story_user].name.split()[0] }}</div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+<!-- Story Modal -->
+<div class="story-modal" id="storyModal">
+    <div class="story-content">
+        <button class="story-close" onclick="closeStory()"><i class="fas fa-times"></i></button>
+        <div class="story-header">
+            <span class="user-avatar" id="storyUserAvatar"></span>
+            <div>
+                <div class="fw-bold text-white" id="storyUserName"></div>
+                <small class="text-white-50" id="storyTime"></small>
+            </div>
+        </div>
+        <div class="story-body" id="storyBody">
+            <div id="storyImage"></div>
+            <div class="story-text" id="storyText"></div>
+        </div>
+    </div>
+</div>
+<!-- Chat Sidebar -->
+<div class="chat-sidebar" id="chatSidebar">
+    <div class="chat-header">
+        <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Messages</h5>
+        <button class="btn-close" onclick="closeChat()"></button>
+    </div>
+    <div class="chat-list" id="chatList">
+        <!-- Chat items will be loaded here -->
+    </div>
+</div>
+<!-- Chat Window -->
+<div class="chat-window" id="chatWindow">
+    <div class="chat-window-header">
+        <button class="chat-back-btn" onclick="backToChats()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <span class="chat-avatar" id="chatUserAvatar"></span>
+        <div class="flex-grow-1">
+            <div class="fw-bold" id="chatUserName"></div>
+            <small class="text-muted" id="chatUserStatus"></small>
+        </div>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <!-- Messages will be loaded here -->
+    </div>
+    <div class="chat-input-container">
+        <input type="text" class="chat-input" id="chatInput" placeholder="Type a message...">
+        <button class="chat-send-btn" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+<!-- Add Story Modal -->
+<div class="modal fade" id="addStoryModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fas fa-plus-circle me-2"></i>Add Story</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Choose Emoji</label>
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('📸')">📸</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('🎨')">🎨</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('💻')">💻</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('🏖️')">🏖️</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('🍕')">🍕</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('☕')">☕</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('🎮')">🎮</button>
+                        <button class="btn btn-lg" onclick="selectStoryEmoji('🎵')">🎵</button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Caption</label>
+                    <input type="text" class="form-control" id="storyCaption" placeholder="Add a caption...">
+                </div>
+                <input type="hidden" id="selectedEmoji" value="📸">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-gradient" onclick="postStory()">
+                    <i class="fas fa-check me-2"></i>Post Story
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+    <!-- Create Post (sudah ada) -->
+    ...
+</div>       
+
+ <!-- Create Post -->
+                <div class="card create-post-card animate__animated animate__fadeInUp">
+                    <div class="card-body">
+                        <div class="d-flex mb-3">
+                            <span class="user-avatar me-2">{{ user.avatar }}</span>
+                            <textarea class="form-control" id="postText" rows="3" placeholder="What's on your mind, {{ user.name.split()[0] }}?"></textarea>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <div class="post-options">
+                                <button class="btn btn-sm btn-light me-2">
+                                    <i class="fas fa-image text-success"></i> Photo
+                                </button>
+                                <button class="btn btn-sm btn-light me-2">
+                                    <i class="fas fa-video text-danger"></i> Video
+                                </button>
+                                <button class="btn btn-sm btn-light">
+                                    <i class="fas fa-smile text-warning"></i> Feeling
+                                </button>
+                            </div>
+                            <button class="btn btn-gradient" id="postBtn">
+                                <i class="fas fa-paper-plane me-2"></i>Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Posts -->
+                <div id="postsContainer">
+                    {% for post in posts %}
+                    <div class="card post-card animate__animated animate__fadeInUp" data-post-id="{{ post.id }}">
+                        <div class="card-body">
+                            <div class="d-flex mb-3">
+                                <span class="user-avatar me-2">{{ users[post.user].avatar }}</span>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-0">
+                                        {{ users[post.user].name }}
+                                        {% if users[post.user].verified %}<i class="fas fa-check-circle text-primary ms-1"></i>{% endif %}
+                                    </h6>
+                                    <small class="text-muted"><i class="far fa-clock me-1"></i>{{ post.time }}</small>
+                                </div>
+                                <div class="dropdown">
+                                    <button class="btn btn-sm" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-bookmark me-2"></i>Save</a></li>
+                                        <li><a class="dropdown-item" href="#"><i class="fas fa-flag me-2"></i>Report</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                            <p class="post-content">{{ post.text }}</p>
+                            
+                            <div class="post-stats mb-2">
+                                <span><i class="fas fa-heart text-danger me-1"></i>{{ post.likes|length }} likes</span>
+                                <span><i class="fas fa-comment me-1"></i>{{ post.comments|length }} comments</span>
+                            </div>
+                            
+                            <div class="post-actions">
+                                <button class="action-btn {% if username in post.likes %}liked{% endif %}" onclick="likePost({{ post.id }})">
+                                    <i class="fas fa-heart me-1"></i>Like
+                                </button>
+                                <button class="action-btn" onclick="toggleComments({{ post.id }})">
+                                    <i class="fas fa-comment me-1"></i>Comment
+                                </button>
+                                <button class="action-btn">
+                                    <i class="fas fa-share me-1"></i>Share
+                                </button>
+                            </div>
+                            
+                            <div class="comments-section" id="comments-{{ post.id }}" style="display: none;">
+                                {% for comment in post.comments %}
+                                <div class="comment animate__animated animate__fadeIn">
+                                    <span class="comment-avatar">{{ users[comment.user].avatar }}</span>
+                                    <div class="comment-content">
+                                        <strong>{{ users[comment.user].name }}</strong>
+                                        <p class="mb-0">{{ comment.text }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                                
+                                <div class="d-flex mt-2">
+                                    <span class="user-avatar me-2">{{ user.avatar }}</span>
+                                    <input type="text" class="form-control comment-input" placeholder="Write a comment..." 
+                                           onkeypress="if(event.key==='Enter'&&this.value.trim()){addComment({{ post.id }}, this.value); this.value=''}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Right Sidebar -->
+            <div class="col-lg-3 d-none d-lg-block">
+                <div class="card animate__animated animate__fadeInRight">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-fire text-danger me-2"></i>Trending</h6>
+                        <div class="trending-item">
+                            <div class="fw-bold text-primary">#WebDevelopment</div>
+                            <small class="text-muted">12.5K posts</small>
+                        </div>
+                        <div class="trending-item">
+                            <div class="fw-bold text-primary">#MachineLearning</div>
+                            <small class="text-muted">8.2K posts</small>
+                        </div>
+                        <div class="trending-item">
+                            <div class="fw-bold text-primary">#TravelGoals</div>
+                            <small class="text-muted">6.7K posts</small>
+                        </div>
+                        <div class="trending-item">
+                            <div class="fw-bold text-primary">#UIDesign</div>
+                            <small class="text-muted">4.3K posts</small>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-user-plus me-2"></i>Suggestions</h6>
+                        {% for uname, udata in users.items() %}
+                        {% if uname != username %}
+                        <div class="suggestion-item">
+                            <span class="user-avatar">{{ udata.avatar }}</span>
+                            <div class="flex-grow-1 ms-2">
+                                <div class="fw-bold">{{ udata.name }}</div>
+                                <small class="text-muted">Suggested for you</small>
+                            </div>
+                            <button class="btn btn-sm btn-primary">Follow</button>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal fade" id="notifModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-bell me-2"></i>Notifications</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">You have 3 new notifications!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="messageModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-envelope me-2"></i>Messages</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted">No new messages.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
